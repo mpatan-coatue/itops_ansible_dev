@@ -3,7 +3,7 @@
   connection: local
 
   vars_files: 
-    - secrets.yml
+    - vars/secrets.yml
 
   tasks:
     - name: Sync Yodlee folder to coatueprop/yodlee_uploads folder.
