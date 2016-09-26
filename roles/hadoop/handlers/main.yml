@@ -1,0 +1,26 @@
+- name: restart hadoop
+  debug: shutting down services.
+  notify: shutdown yarn
+
+- name: shutdown yarn
+  command: {{ hadoop_directory }}/sbin/stop-yarn.sh
+  become: yes
+  become_user: hadoop
+  notify: shutdown HDFS
+
+- name: shutdown HDFS
+  command: {{ hadoop_directory }}/sbin/stop-dfs.sh
+  become: yes
+  become_user: hadoop
+  notify: start hdfs
+
+- name: start hdfs
+  command: {{ hadoop_directory }}/sbin/start-dfs.sh
+  become: yes
+  become_user: hadoop
+  notify: start yarn
+
+- name: start yarn
+  command: {{ hadoop_directory }}/sbin/start-yarn.sh
+  become: yes
+  become_user: hadoop

@@ -1,0 +1,11 @@
+---
+hosts: all
+gather_facts: yes
+
+vars:
+  spark_master_name:
+  spark_master_ip:
+  spark_master02_name:
+  spark_master02_ip:
+
+  spark_workers: 16

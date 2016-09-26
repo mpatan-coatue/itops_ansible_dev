@@ -1,0 +1,129 @@
+- name: Install basic tools.
+  yum: name={{ item }} state=present update_cache=yes
+  with_items:
+    - net-tools
+    - wget
+
+- name: Create hadoop user.
+  user: name=hadoop shell=/bin/bash home=/home/hadoop password="{{ 'Coatue126' | password_hash('sha512') }}" update_password=on_create
+
+- name: Setup authorized key.
+  authorized_key: user=hadoop key="{{ item }}"
+  with_file:
+    -files/id_rsa.pub
+
+- name: Copy Java installer.
+  copy: src=files/jdk-8u102-linux-x64.rpm dest:{{ download_dir }}/jdk-8u102-linux-x64.rpm
+
+- name: Install Java.
+  yum: name={{ download_dir }}/jdk-8u102-linux-x64.rpm state=present
+
+- name: Copy Hadoop installer.
+  copy: src=files/hadoop-2.7.3.tar.gz dest={{ download_dir }}/hadoop-{{ hadoop_version }}.tar.gz
+
+- name: Expand Hadoop.
+  command: tar -C /tmp -xfz {{ download_dir }}/hadoop-{{ hadoop_version }}.tar.gz
+  creates={{ download_dir }}/hadoop-{{ hadoop_version }}/NOTICE.txt
+
+- name: Copy Hadoop.
+  command: cp -rf {{ download_dir }}/hadoop-{{ hadoop_version }}/* {{ hadoop_directory }}/hadoop
+  creates={{ hadoop_directory }}/hadoop/bin/hadoop
+
+- name: Update .bash_profile file.
+  template:
+    src: templates/.bash_profile
+    dest: /home/hadoop/.bash_profile
+    owner: hadoop
+    group: hadoop
+
+- name: Set Hadoop directory permissions.
+  file:
+    path: "{{ hadoop_directory }}/hadoop"
+    state: directory
+    owner: hadoop
+    group: hadoop
+
+- name: Create HDFS volume.
+  file:
+    path: {{ hdfs_directory }}
+    state: directory
+    owner: hadoop
+    group: hadoop
+
+- name: Create datanode folder.
+  file:
+    path: {{ hdfs_directory }}/namenode
+    state: directory
+    owner: hadoop
+    group: hadoop
+
+- name: Create namenode folder.
+  file:
+    path: {{ hdfs_directory }}/datanode
+    state: directory
+    owner: hadoop
+    group: hadoop
+
+- name: Configure core-site.yml.
+  template:
+    src: templates/core-site.xml.j2
+    dest: {{ hadoop_directory }}/etc/hadoop/core-site.xml
+    owner: hadoop
+    group: hadoop
+    mode: 0644
+  notify: restart hadoop
+
+-name: Configure hfs-site.xml.
+  template:
+    src: template/hfs-site.xml.j2
+    dest: {{ hadoop_directory }}/etc/hadoop/hfs-site.yml
+    owner: hadoop
+    group: hadoop
+    mode: 0644
+  notify: restart hadoop
+
+-name: Configure mapred-site.xml.
+  template:
+    src: template/mapred-site.xml.j2
+    dest: {{ hadoop_directory }}/etc/hadoop/mapred-site.yml
+    owner: hadoop
+    group: hadoop
+    mode: 0644
+  notify: restart hadoop
+
+-name: Configure yarn-site.xml.
+  template:
+    src: template/yarn-site.xml.j2
+    dest: {{ hadoop_directory }}/etc/hadoop/yarn-site.yml
+    owner: hadoop
+    group: hadoop
+    mode: 0644
+  notify: restart hadoop
+
+-name: Configure hadoop-env.sh.
+  template:
+    src: template/hadoop-env.sh.j2
+    dest: {{ hadoop_directory }}/etc/hadoop/hadoop-env.sh
+    owner: hadoop
+    group: hadoop
+    mode: 0644
+  notify: restart hadoop
+
+-name: Configure slaves file.
+  template:
+    src: template/slaves.j2
+    dest: {{ hadoop_directory }}/etc/hadoop/slaves
+    owner: hadoop
+    group: hadoop
+    mode: 0644
+  notify: restart hadoop
+
+
+- name: Include OS-specific variables.
+  include_vars: "{{ansible_os_family}}.yml"
+
+- include: setup-Redhat.yml
+  when: ansible_os_family == 'Redhat'
+
+- include: setup-Debian.yml
+  when: ansible_os_family == 'Debian'

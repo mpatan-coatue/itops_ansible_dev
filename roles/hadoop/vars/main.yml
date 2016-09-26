@@ -1,0 +1,10 @@
+hadoop_version: 2.7.3
+download_dir: /var/root
+hadoop_directory: /opt
+
+hdfs_directory: /home/volume
+spark_master: casparkmaster01.coatue.com
+mapred_framework: yarn
+yarn_nodemanager: mapreduce_shuffle
+
+java_home: /usr/java/default/

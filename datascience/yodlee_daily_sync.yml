@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  connection: local
+
+  vars_files: 
+    - secrets.yml
+
+  tasks:
+    - name: Sync Yodlee folder to coatueprop/yodlee_uploads folder.
+      command: aws s3 sync s3://yodleeproducts/panels/4m_v3/card/ s3://coatuepropresearch/yodlee_uploads/
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ aws_ds_yodlee_accesskey }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_ds_yodlee_secretkey }}"
