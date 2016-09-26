@@ -2,7 +2,7 @@
 - hosts: all
 
   vars_files: 
-    - vars/secrets.yml
+    - /vars/secrets.yml
 
   tasks:
     - name: Sync Yodlee folder to coatueprop/yodlee_uploads folder.
